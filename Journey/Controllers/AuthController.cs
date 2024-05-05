@@ -64,13 +64,13 @@ namespace Journey_it.Controllers
                 return NotFound("User not found");
             }
 
-            var userProfile = new
+            var userProfile = new ProfileResponse
             {
-                user.Id,
-                user.Name,
-                user.Username,
-                user.Email,
-                user.ImagePath
+                Id= user.Id,
+               Name= user.Name,
+                Username= user.Username,
+               Email= user.Email,
+               ImagePath= user.ImagePath
             };
 
             return Ok(userProfile);
