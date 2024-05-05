@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
 using BCrypt.Net;
+using Journey.Model;
 
 namespace Journey_it.Controllers
 {
@@ -53,5 +54,63 @@ namespace Journey_it.Controllers
 
             return Ok(new { Message = "User Created" });
         }
+        [HttpGet("profile")]
+        public IActionResult Profile()
+        {
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var userProfile = new
+            {
+                user.Id,
+                user.Name,
+                user.Username,
+                user.Email,
+                user.ImagePath
+            };
+
+            return Ok(userProfile);
+        }
+
+
+        [HttpPost("profile")]
+        public async Task<IActionResult> EditProfile(EditProfileRequest request)
+        {
+
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            
+            user.Name = request.Name;
+            user.Email = request.Email;
+
+            Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(),
+                                        "uploads", user.Id.ToString()));
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(),
+                                        "uploads",user.Id.ToString(),
+                                        request.Image.FileName);
+
+            using (var stream = System.IO.File.Create(filePath))
+            {
+                await request.Image.CopyToAsync(stream);
+            }
+
+
+
+            user.ImagePath = $"uploads/{user.Id}/{request.Image.FileName}";
+            _context.SaveChanges();
+
+            return Ok(new { Message = "Profile updated successfully" });
+        }
+
     }
 }
