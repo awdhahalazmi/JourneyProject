@@ -34,13 +34,7 @@ namespace Journy.Model
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            //    var claims = new[]
-            //    {
-            //        //we can change this part depending on what we need
-            //new Claim(TokenClaimsConstant.Username, username),
-            //new Claim(TokenClaimsConstant.UserId, "1"),
-            //new Claim(ClaimTypes.Role, "User")
-            //};
+         
             var claims = new[]
     {
             new Claim(TokenClaimsConstant.Username, userAccount.Username),
@@ -51,7 +45,7 @@ namespace Journy.Model
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.Now.AddYears(30),
                 signingCredentials: credentials);
             var generatedToken = new JwtSecurityTokenHandler().WriteToken(token);
             return (true, generatedToken);

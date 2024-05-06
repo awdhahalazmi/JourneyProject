@@ -5,6 +5,10 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
 using BCrypt.Net;
+using Journey.Model;
+using Microsoft.EntityFrameworkCore;
+using Journey.Model.Requests;
+using Journey.Model.Responses;
 
 namespace Journey_it.Controllers
 {
@@ -53,5 +57,138 @@ namespace Journey_it.Controllers
 
             return Ok(new { Message = "User Created" });
         }
+        [HttpGet("profile")]
+        public IActionResult Profile()
+        {
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var userProfile = new ProfileResponse
+            {
+                Id= user.Id,
+               Name= user.Name,
+                Username= user.Username,
+               Email= user.Email,
+               ImagePath= user.ImagePath
+            };
+
+            return Ok(userProfile);
+        }
+
+
+        [HttpPost("profile")]
+        public async Task<IActionResult> EditProfile(EditProfileRequest request)
+        {
+
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            
+            user.Name = request.Name;
+            user.Email = request.Email;
+
+            Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(),
+                                        "uploads", user.Id.ToString()));
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(),
+                                        "uploads",user.Id.ToString(),
+                                        request.Image.FileName);
+
+            using (var stream = System.IO.File.Create(filePath))
+            {
+                await request.Image.CopyToAsync(stream);
+            }
+
+
+
+            user.ImagePath = $"uploads/{user.Id}/{request.Image.FileName}";
+            _context.SaveChanges();
+
+            return Ok(new { Message = "Profile updated successfully" });
+        }
+        [HttpPost("follow/{userId}")]
+        public IActionResult FollowUser(int userId)
+        {
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var currentUser = _context.Users.Include(r=> r.Following).FirstOrDefault(u => u.Username == username);
+            if (currentUser == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var userToFollow = _context.Users.FirstOrDefault(u => u.Id == userId);
+            if (userToFollow == null)
+            {
+                return NotFound("User to follow not found");
+            }
+
+            if (currentUser.Following.Contains(userToFollow))
+            {
+                currentUser.Following.Remove(userToFollow);
+            }
+            else
+            {
+                currentUser.Following.Add(userToFollow);
+            }
+
+            _context.SaveChanges();
+
+            return Ok(new { Message = "Operation completed successfully" });
+        }
+        [HttpGet("followers")]
+        public IActionResult GetFollowers()
+        {
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var user = _context.Users.Include(u => u.Followers).FirstOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var followers = user.Followers.Select(f => new ProfileResponse
+            {
+                Id = f.Id,
+                Name = f.Name,
+                Username = f.Username,
+                Email = f.Email,
+                ImagePath = f.ImagePath
+            }).ToList();
+
+            return Ok(followers);
+        }
+
+        [HttpGet("following")]
+        public IActionResult GetFollowing()
+        {
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var user = _context.Users.Include(u => u.Following).FirstOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var following = user.Following.Select(f => new ProfileResponse
+            {
+                Id = f.Id,
+                Name = f.Name,
+                Username = f.Username,
+                Email = f.Email,
+                ImagePath = f.ImagePath
+            }).ToList();
+
+            return Ok(following);
+        }
+
+
+
+
     }
 }
