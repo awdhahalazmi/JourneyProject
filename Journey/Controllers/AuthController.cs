@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using BCrypt.Net;
 using Journey.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Journey_it.Controllers
 {
@@ -111,6 +112,81 @@ namespace Journey_it.Controllers
 
             return Ok(new { Message = "Profile updated successfully" });
         }
+        [HttpPost("follow/{userId}")]
+        public IActionResult FollowUser(int userId)
+        {
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var currentUser = _context.Users.Include(r=> r.Following).FirstOrDefault(u => u.Username == username);
+            if (currentUser == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var userToFollow = _context.Users.FirstOrDefault(u => u.Id == userId);
+            if (userToFollow == null)
+            {
+                return NotFound("User to follow not found");
+            }
+
+            if (currentUser.Following.Contains(userToFollow))
+            {
+                currentUser.Following.Remove(userToFollow);
+            }
+            else
+            {
+                currentUser.Following.Add(userToFollow);
+            }
+
+            _context.SaveChanges();
+
+            return Ok(new { Message = "Operation completed successfully" });
+        }
+        [HttpGet("followers")]
+        public IActionResult GetFollowers()
+        {
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var user = _context.Users.Include(u => u.Followers).FirstOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var followers = user.Followers.Select(f => new ProfileResponse
+            {
+                Id = f.Id,
+                Name = f.Name,
+                Username = f.Username,
+                Email = f.Email,
+                ImagePath = f.ImagePath
+            }).ToList();
+
+            return Ok(followers);
+        }
+
+        [HttpGet("following")]
+        public IActionResult GetFollowing()
+        {
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var user = _context.Users.Include(u => u.Following).FirstOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var following = user.Following.Select(f => new ProfileResponse
+            {
+                Id = f.Id,
+                Name = f.Name,
+                Username = f.Username,
+                Email = f.Email,
+                ImagePath = f.ImagePath
+            }).ToList();
+
+            return Ok(following);
+        }
+
+
+
 
     }
 }

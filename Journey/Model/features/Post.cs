@@ -11,5 +11,7 @@
 
         public UserAccount User { get; set; }
         public Country Country { get; set; }
+        public double AverageRating { get; set; }
+
     }
 }

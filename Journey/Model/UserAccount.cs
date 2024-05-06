@@ -12,7 +12,7 @@ namespace Journy.Model
         public string Password { get; set; }
 
         public string Email { get; set; }
-        public string ImagePath { get; set; }
+        public string ImagePath { get; set; } = "";
 
         public List<UserAccount> Followers { get; set; }
         public List<UserAccount> Following { get; set; }

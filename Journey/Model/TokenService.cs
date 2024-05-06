@@ -34,13 +34,7 @@ namespace Journy.Model
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            //    var claims = new[]
-            //    {
-            //        //we can change this part depending on what we need
-            //new Claim(TokenClaimsConstant.Username, username),
-            //new Claim(TokenClaimsConstant.UserId, "1"),
-            //new Claim(ClaimTypes.Role, "User")
-            //};
+         
             var claims = new[]
     {
             new Claim(TokenClaimsConstant.Username, userAccount.Username),
