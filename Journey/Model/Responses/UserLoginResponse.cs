@@ -1,4 +1,4 @@
-﻿namespace Journy.Model
+﻿namespace Journey.Model.Responses
 {
     public class UserLoginResponse
     {

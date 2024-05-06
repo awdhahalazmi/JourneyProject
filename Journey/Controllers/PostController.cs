@@ -5,7 +5,8 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
 using BCrypt.Net;
-using Journey.Model;
+using Journey.Model.Requests;
+using Journey.Model.Responses;
 
 namespace Journey_it.Controllers
 {

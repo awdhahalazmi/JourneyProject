@@ -7,6 +7,8 @@ using System.Linq;
 using BCrypt.Net;
 using Journey.Model;
 using Microsoft.EntityFrameworkCore;
+using Journey.Model.Requests;
+using Journey.Model.Responses;
 
 namespace Journey_it.Controllers
 {
