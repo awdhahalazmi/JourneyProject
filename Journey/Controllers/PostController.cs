@@ -258,6 +258,27 @@ namespace Journey_it.Controllers
             var countryIds = _context.Countries.ToList();
             return Ok(countryIds);
         }
+        [HttpDelete("{postId}")]
+        public IActionResult DeletePost(int postId)
+        {
+            var username = User.FindFirst(TokenClaimsConstant.Username).Value;
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var postToDelete = _context.Posts.FirstOrDefault(p => p.Id == postId && p.UserId == user.Id);
+            if (postToDelete == null)
+            {
+                return NotFound("Post not found or you are not authorized to delete this post");
+            }
+
+            _context.Posts.Remove(postToDelete);
+            _context.SaveChanges();
+
+            return Ok(new { Message = "Post deleted successfully" });
+        }
 
     }
 
