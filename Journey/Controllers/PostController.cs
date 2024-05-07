@@ -83,8 +83,8 @@ namespace Journey_it.Controllers
 
             return Ok(posts);
         }
-        [HttpGet("randomposts")]
-        public IActionResult GetRandomPosts()
+        [HttpGet("randomposts/{countryId?}")]
+        public IActionResult GetRandomPosts(int? countryId = null)
         {
             var username = User.FindFirst(TokenClaimsConstant.Username).Value;
             var user = _context.Users.FirstOrDefault(u => u.Username == username);
@@ -93,19 +93,24 @@ namespace Journey_it.Controllers
                 return NotFound("User not found");
             }
 
-            var posts = _context.Posts.Where(p => p.UserId != user.Id)
-                                      .Select(p => new PostResponse
-                                      {
-                                          Id = p.Id,
-                                          Text = p.Texts,
-                                          Title = p.Title,
-                                          ImagePath = p.ImgPath,
-                                          AverageRatings = p.AverageRating
+            IQueryable<Post> postsQuery = _context.Posts.Where(p => p.UserId != user.Id);
 
-                                      })
-                                      .ToList();
+            if (countryId.HasValue)
+            {
+                postsQuery = postsQuery.Where(p => p.CountryId == countryId.Value);
+            }
 
-           
+            var posts = postsQuery.Select(p => new PostResponse
+            {
+                Id = p.Id,
+                Text = p.Texts,
+                Title = p.Title,
+                ImagePath = p.ImgPath,
+                AverageRatings = p.AverageRating
+
+            })
+            .ToList();
+
             var rnd = new Random();
             posts = posts.OrderBy(x => rnd.Next()).ToList();
 
