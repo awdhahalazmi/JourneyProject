@@ -34,7 +34,7 @@ namespace Journey_it.Controllers
             var response = _service.GenerateToken(loginDetails.Username, loginDetails.Password);
             if (response.IsValid)
             {
-                return Ok(new { Token = response.Token });
+                return Ok(new UserLoginResponse { Token = response.Token });
             }
             return BadRequest("Username and/or Password is wrong");
         }
