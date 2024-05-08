@@ -3,9 +3,8 @@
     public class Pin
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
-        public UserAccount Users { get; set; }
+        public UserAccount User { get; set; }
        
-        public List<Post> Posts { get; set; }
+        public Post Posts { get; set; }
     }
 }

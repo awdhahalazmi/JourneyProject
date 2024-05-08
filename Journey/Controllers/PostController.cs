@@ -7,6 +7,7 @@ using System.Linq;
 using BCrypt.Net;
 using Journey.Model.Requests;
 using Journey.Model.Responses;
+using Microsoft.EntityFrameworkCore;
 
 namespace Journey_it.Controllers
 {
@@ -84,7 +85,7 @@ namespace Journey_it.Controllers
             return Ok(posts);
         }
         [HttpGet("randomposts/{countryId?}")]
-        public IActionResult GetRandomPosts(int? countryId = null)
+        public ActionResult<List<PostResponse>> GetRandomPosts(int? countryId = null)
         {
             var username = User.FindFirst(TokenClaimsConstant.Username).Value;
             var user = _context.Users.FirstOrDefault(u => u.Username == username);
@@ -93,7 +94,7 @@ namespace Journey_it.Controllers
                 return NotFound("User not found");
             }
 
-            IQueryable<Post> postsQuery = _context.Posts.Where(p => p.UserId != user.Id);
+            IQueryable<Post> postsQuery = _context.Posts.Include(r=>  r.Country ).Include(r=> r.User).Where(p => p.UserId != user.Id);
 
             if (countryId.HasValue)
             {
@@ -106,7 +107,9 @@ namespace Journey_it.Controllers
                 Text = p.Texts,
                 Title = p.Title,
                 ImagePath = p.ImgPath,
-                AverageRatings = p.AverageRating
+                AverageRatings = p.AverageRating,
+                CountryName= p.Country.CountryName,
+                Username = p.User.Username
 
             })
             .ToList();
@@ -132,19 +135,19 @@ namespace Journey_it.Controllers
                 return NotFound("Post not found");
             }
 
-            var existingPin = _context.Pins.FirstOrDefault(p => p.UserId == user.Id && p.Posts.Any(post => post.Id == postId));
+            var existingPin = _context.Pins.FirstOrDefault(p => p.User.Id == user.Id && p.Posts.Id== postId);
 
             if (existingPin != null)
             {
-                existingPin.Posts.Remove(postToPin);
+                //existingPin.Posts.Remove(postToPin);
             }
             else
             {
                 var pin = new Pin
                 {
-                    UserId = user.Id,
-                    Users = user,
-                    Posts = new List<Post> { postToPin }
+                  //  UserId = user.Id,
+                    User = user,
+                    Posts = postToPin 
                 };
                 _context.Pins.Add(pin);
             }
@@ -165,14 +168,14 @@ namespace Journey_it.Controllers
             }
 
             var pinnedPosts = _context.Pins
-                                     .Where(p => p.UserId == user.Id)
-                                     .SelectMany(p => p.Posts)
+                                     .Where(p => p.User.Id == user.Id)
                                      .Select(p => new PostResponse
                                      {
-                                         Id = p.Id,
-                                         Text = p.Texts,
-                                         Title = p.Title,
-                                         ImagePath = p.ImgPath
+                                         Id = p.Posts.Id,
+                                         Text = p.Posts.Texts,
+                                         Title = p.Posts.Title,
+                                         ImagePath = p.Posts.ImgPath,
+                                         Username = p.Posts.User.Username
                                      })
                                      .ToList();
 
