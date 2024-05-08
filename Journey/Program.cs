@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Text;
 using Journy.Model;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,7 +55,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseHttpsRedirection();
-
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+           Path.Combine(builder.Environment.ContentRootPath, "Uploads")),
+    RequestPath = "/Uploads"
+});
 app.UseRouting();
 
 
