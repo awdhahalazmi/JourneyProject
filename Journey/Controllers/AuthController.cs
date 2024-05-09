@@ -93,7 +93,7 @@ namespace Journey_it.Controllers
 
             
             user.Name = request.Name;
-            user.Email = request.Email;
+          //  user.Email = request.Email;
 
             Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(),
                                         "uploads", user.Id.ToString()));
